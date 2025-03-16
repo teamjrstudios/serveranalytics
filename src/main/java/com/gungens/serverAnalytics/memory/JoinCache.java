@@ -1,16 +1,16 @@
 package com.gungens.serverAnalytics.memory;
 
+import com.gungens.serverAnalytics.ServerAnalytics;
 import com.gungens.serverAnalytics.models.TrackedPlayer;
 import org.bukkit.Bukkit;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class JoinCache {
-    private static JoinCache INSTANCE = new JoinCache();
+    private static final JoinCache INSTANCE = new JoinCache();
     private final Map<TrackedPlayer, Long> trackedPlayerHashMap;
     private final Map<UUID, TrackedPlayer> uuidToPlayerMap; // Efficient UUID lookup
 
@@ -27,9 +27,13 @@ public class JoinCache {
     public TrackedPlayer getPlayerByUUID(UUID uuid) {
         return uuidToPlayerMap.get(uuid);
     }
+    public TrackedPlayer getPlayer(UUID uuid) {
+        return uuidToPlayerMap.get(uuid);
+    }
     public void addPlayer(TrackedPlayer player) {
         trackedPlayerHashMap.put(player, 0L);
         uuidToPlayerMap.put(player.getUuid(), player);
+        ServerAnalytics.INSTANCE.getDatabaseManager().trackPlayer(player);
     }
     public void removePlayer(TrackedPlayer player) {
         trackedPlayerHashMap.remove(player);
@@ -37,7 +41,11 @@ public class JoinCache {
     }
     public void endSession(TrackedPlayer player, long timestamp) {
         trackedPlayerHashMap.put(player, timestamp);
-        double timePlayedSeconds = ((double) (timestamp - player.getTimestamp()) /1000);
+
+        long timePlayed = timestamp - player.getTimestamp();
+        player.setTimePlayed(timePlayed);
+        ServerAnalytics.INSTANCE.getDatabaseManager().updatePlayer(player);
+
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
         removePlayer(player);
     }
@@ -47,7 +55,9 @@ public class JoinCache {
         int hours = minutes / 60;
         int remainingMinutes = minutes % 60;
         StringBuilder sb = new StringBuilder();
-        sb.append("The user "+username+" has had a session for ");
+        sb.append("The user ")
+                .append(username)
+                .append(" has had a session for ");
         if (hours > 0) {
             sb.append(hours)
                     .append(" hrs ");
@@ -65,4 +75,5 @@ public class JoinCache {
     public Map<TrackedPlayer, Long> getCache() {
         return trackedPlayerHashMap;
     }
+
 }
