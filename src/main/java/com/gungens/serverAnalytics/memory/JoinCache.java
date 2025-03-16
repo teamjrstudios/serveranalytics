@@ -53,6 +53,11 @@ public class JoinCache {
         ServerAnalytics.INSTANCE.getDatabaseManager().updatePlayer(player);
 
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
+        try {
+            sendWebhook(new URL("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         removePlayer(player);
     }
     public void sendWebhook(URL webhookUrl) throws IOException {
