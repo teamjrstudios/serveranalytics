@@ -1,0 +1,8 @@
+name: ServerAnalytics
+version: '1.0-SNAPSHOT'
+main: com.gungens.serverAnalytics.ServerAnalytics
+api-version: '1.19'
+load: STARTUP
+authors: [ Stratfod (Alex) ]
+description: Server analytics for gungens
+website: https://gungens.com
