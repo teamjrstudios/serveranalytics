@@ -53,46 +53,41 @@ public class JoinCache {
         ServerAnalytics.INSTANCE.getDatabaseManager().updatePlayer(player);
 
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
-        try {
-            sendWebhook(new URL("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        sendWebhook("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7");
         removePlayer(player);
     }
-    public void sendWebhook(URL webhookUrl) throws IOException {
+    public static void sendWebhook(String webhookUrl) {
+        var logger = Bukkit.getLogger();
+        try {
+            HttpURLConnection connection = getUrlConnection(webhookUrl);
 
-        HttpURLConnection connection = (HttpURLConnection) webhookUrl.openConnection();
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 204) {
+                logger.info("Webhook sent successfully!");
+            } else {
+                logger.log(Level.SEVERE, "Failed to send webhook. Response code: " + responseCode + ", Message: " + connection.getResponseMessage());
+            }
+
+            connection.disconnect();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error sending webhook", e);
+        }
+    }
+
+    private static HttpURLConnection getUrlConnection(String webhookUrl) throws IOException {
+        URL url = new URL(webhookUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
 
-        String data = "{\n" +
-                "  \"name\": \"test webhook\",\n" +
-                "  \"type\": 1,\n" +
-                "  \"channel_id\": \"199737254929760256\",\n" +
-                "  \"token\": \"3d89bb7572e0fb30d8128367b3b1b44fecd1726de135cbe28a41f8b2f777c372ba2939e72279b94526ff5d1bd4358d65cf11\",\n" +
-                "  \"avatar\": null,\n" +
-                "  \"guild_id\": \"199737254929760256\",\n" +
-                "  \"id\": \"223704706495545344\",\n" +
-                "  \"application_id\": null,\n" +
-                "  \"user\": {\n" +
-                "    \"username\": \"test\",\n" +
-                "    \"discriminator\": \"7479\",\n" +
-                "    \"id\": \"190320984123768832\",\n" +
-                "    \"avatar\": \"b004ec1740a63ca06ae2e14c5cee11f3\",\n" +
-                "    \"public_flags\": 131328\n" +
-                "  }\n" +
-                "}\n";
+        String payload = "{ \"content\": \"Hello, this is a test message from Java!\", \"username\": \"WebhookBot\" }";
+
         try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = data.getBytes(StandardCharsets.UTF_8);
+            byte[] input = payload.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
         }
-        int responseCode = connection.getResponseCode();
-        if (responseCode != 204) {
-            Bukkit.getLogger().log(Level.SEVERE, "Received response code " + responseCode + ": " + connection.getResponseMessage());
-        }
-        connection.disconnect();
+        return connection;
     }
 
     public static String formatTime(int seconds, String username) {

@@ -12,10 +12,12 @@ public final class ServerAnalytics extends JavaPlugin {
     private DatabaseManager databaseManager;
     @Override
     public void onEnable() {
+
         databaseManager = new DatabaseManager();
         registerListeners(getServer().getPluginManager(),
                 new JoinListener()
         );
+        INSTANCE = this;
     }
     public void registerListeners(PluginManager pm, Listener... listeners) {
         for (Listener listener : listeners) {
