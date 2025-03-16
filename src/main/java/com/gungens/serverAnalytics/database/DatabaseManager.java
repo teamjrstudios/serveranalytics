@@ -7,11 +7,14 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import org.bukkit.Bukkit;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class DatabaseManager {
     private Dao<TrackedPlayer, String> playerDao;
+    private final String databaseUrl = "jdbc:sqlite:plugins/ServerAnalytics/database.db";
     public DatabaseManager() {
         connect();
         this.playerDao = playerDao;
@@ -25,7 +28,7 @@ public class DatabaseManager {
     }
     public void connect() {
         try {
-            String databaseUrl = "jdbc:sqlite:plugins/ServerAnalytics/database.db";
+
             ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
 
             // Create the table if it doesn't exist
@@ -35,6 +38,13 @@ public class DatabaseManager {
             playerDao = com.j256.ormlite.dao.DaoManager.createDao(connectionSource, TrackedPlayer.class);
         } catch (SQLException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to connect to database: " + e.getMessage());
+        }
+    }
+    public Connection openConnection() {
+        try {
+            return DriverManager.getConnection(databaseUrl);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
