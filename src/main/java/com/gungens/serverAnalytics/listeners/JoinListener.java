@@ -1,5 +1,6 @@
 package com.gungens.serverAnalytics.listeners;
 
+import com.gungens.serverAnalytics.libs.MessageUtils;
 import com.gungens.serverAnalytics.memory.JoinCache;
 import com.gungens.serverAnalytics.models.TrackedPlayer;
 import org.bukkit.entity.Player;
@@ -13,16 +14,17 @@ public class JoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         TrackedPlayer player = new TrackedPlayer(event.getPlayer());
-        JoinCache.getInstance().addPlayer(player);
-        event.getPlayer()
-                .sendMessage(
-                        String.valueOf(
-                                44<<2
-                                        &
-                                        3<<9
-                                | 8 * 2 * 2
-                        )
-                );
+        player.setFirstJoin(false);
+        Player joinedPlayer = event.getPlayer();
+        if (!event.getPlayer().hasPlayedBefore()) {
+            player.setFirstJoin(true);
+            joinedPlayer.sendMessage(MessageUtils.format("&6Welcome to GunGens! &eThis is a fast-paced, action-packed server where you can build, battle, and dominate with custom guns and generators. &7Team up with friends, explore unique maps, and rise to the top of the leaderboard. &aGood luck, and have fun!"));
+
+        }
+
+        if (player.isFirstJoin()) {
+
+        }
 
     }
     @EventHandler
@@ -30,4 +32,5 @@ public class JoinListener implements Listener {
         TrackedPlayer player = JoinCache.getInstance().getPlayerByUUID(event.getPlayer().getUniqueId());
         JoinCache.getInstance().endSession(player, System.currentTimeMillis());
     }
+
 }
