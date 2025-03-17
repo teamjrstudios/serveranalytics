@@ -58,7 +58,16 @@ public class JoinCache {
     public static void sendWebhook(String webhookUrl, TrackedPlayer player, int timePlayed) {
         var logger = Bukkit.getLogger();
         try {
-            String payload = String.format("{ \"content\": \"%s\", \"username\": \"%s\" }",formatTime(timePlayed, player.getPlayerName()), player.getPlayerName());
+            String playerHeadUrl = "https://minotar.net/avatar/" + player.getPlayerName() + "/128"; // 128x128 player head image
+
+            String payload = String.format(
+                    "{ \"content\": \"%s\", \"username\": \"%s\", \"embeds\": [{ \"title\": \"Player Session Ended\", \"description\": \"%s\", \"thumbnail\": { \"url\": \"%s\" } }] }",
+                    formatTime(timePlayed, player.getPlayerName()), // Message content
+                    player.getPlayerName(), // Webhook Username
+                    formatTime(timePlayed, player.getPlayerName()), // Embed Description
+                    playerHeadUrl // Player Head Image
+            );
+
             HttpURLConnection connection = getUrlConnection(webhookUrl,  payload);
 
             int responseCode = connection.getResponseCode();

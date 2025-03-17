@@ -9,12 +9,11 @@ import java.util.UUID;
 public class TrackedPlayer {
     @DatabaseField(id = true)
     private UUID uuid;
-    @DatabaseField
     private long timestamp;
     @DatabaseField
     private String playerName;
     @DatabaseField
-    private boolean isFirstJoin;
+    private int totalJoins;
     @DatabaseField
     private long timePlayed;
     public TrackedPlayer() {}
@@ -23,7 +22,14 @@ public class TrackedPlayer {
         this.timestamp = System.currentTimeMillis();
         this.playerName = player.getName();
         this.uuid = player.getUniqueId();
-        this.isFirstJoin = true;
+        this.totalJoins = 1;
+    }
+    public TrackedPlayer(UUID uuid, String playerName, int totalJoins) {
+        this.timestamp = System.currentTimeMillis();
+        this.uuid = uuid;
+        this.totalJoins = totalJoins;
+        this.playerName = playerName;
+
     }
 
     /**
@@ -62,11 +68,11 @@ public class TrackedPlayer {
         this.uuid = uuid;
     }
 
-    public boolean isFirstJoin() {
-        return isFirstJoin;
+    public int getTotalJoins() {
+        return totalJoins;
     }
 
-    public void setFirstJoin(boolean firstJoin) {
-        isFirstJoin = firstJoin;
+    public void setTotalJoins(int totalJoins) {
+        this.totalJoins = totalJoins;
     }
 }
