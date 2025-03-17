@@ -39,6 +39,7 @@ public class JoinCache {
         trackedPlayerHashMap.put(player, 0L);
         uuidToPlayerMap.put(player.getUuid(), player);
         ServerAnalytics.INSTANCE.getDatabaseManager().trackPlayer(player);
+        sendJoinLeaveMessageWebhook("https://discordapp.com/api/webhooks/1351039518161109122/YMvH9DwpNtDfw7v19HoxHEEs-E00XVGPTEyp26-QssT6ZMalaQGKIIjgVzCWoajZrDLH", player, PLAYER_STATE.JOINED);
     }
     public void removePlayer(TrackedPlayer player) {
         trackedPlayerHashMap.remove(player);
@@ -53,6 +54,7 @@ public class JoinCache {
 
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
         sendWebhook("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7", player, ((int) (timestamp - player.getTimestamp()) /1000));
+        sendJoinLeaveMessageWebhook("https://discordapp.com/api/webhooks/1351039518161109122/YMvH9DwpNtDfw7v19HoxHEEs-E00XVGPTEyp26-QssT6ZMalaQGKIIjgVzCWoajZrDLH", player, PLAYER_STATE.QUIT);
         removePlayer(player);
     }
     public static void sendWebhook(String webhookUrl, TrackedPlayer player, int timePlayed) {
@@ -82,7 +84,50 @@ public class JoinCache {
             logger.log(Level.SEVERE, "Error sending webhook", e);
         }
     }
+    enum PLAYER_STATE {
+        JOINED, QUIT
+    }
+    private void sendJoinLeaveMessageWebhook(String webhookUrl, TrackedPlayer player, PLAYER_STATE state) {
+        try {
+            URL url = new URL(webhookUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
 
+            String playerName = player.getPlayerName();
+            String playerHeadUrl = "https://minotar.net/avatar/" + playerName + "/128"; // ✅ Player's avatar
+            String stateText = (state == PLAYER_STATE.JOINED) ? "joined the server" : "left the server";
+            String color = (state == PLAYER_STATE.JOINED) ? "5763719" : "15548997"; // ✅ Green for join, red for quit
+
+            // ✅ JSON payload with player avatar embed
+            String payload = String.format(
+                    "{ \"username\": \"%s\", \"embeds\": [{ \"title\": \"Player %s\", \"description\": \"**%s** %s!\", \"color\": %s, \"thumbnail\": { \"url\": \"%s\" }, \"avatar\": { \"url\": \"%s\" } }] }",
+                    playerName, // Webhook Username
+                    (state == PLAYER_STATE.JOINED) ? "Joined" : "Left", // Embed Title
+                    playerName, // Player Name in description
+                    stateText, // Join or leave message
+                    color, // Embed color
+                    playerHeadUrl,
+                    playerHeadUrl
+            );
+
+            // ✅ Send request
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = payload.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 204) { // 204 means success with no content
+                Bukkit.getLogger().log(Level.SEVERE, "Discord Webhook failed with response code: " + responseCode);
+            }
+
+            connection.disconnect();
+        } catch (Exception e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Error sending Discord webhook: " + e.getMessage());
+        }
+    }
     private static HttpURLConnection getUrlConnection(String webhookUrl, String payload) throws IOException {
         URL url = new URL(webhookUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
