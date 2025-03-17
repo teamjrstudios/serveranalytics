@@ -4,7 +4,6 @@ import com.gungens.serverAnalytics.ServerAnalytics;
 import com.gungens.serverAnalytics.models.TrackedPlayer;
 import org.bukkit.Bukkit;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -53,13 +52,14 @@ public class JoinCache {
         ServerAnalytics.INSTANCE.getDatabaseManager().updatePlayer(player);
 
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
-        sendWebhook("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7");
+        sendWebhook("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7", player, ((int) (timestamp - player.getTimestamp()) /1000));
         removePlayer(player);
     }
-    public static void sendWebhook(String webhookUrl) {
+    public static void sendWebhook(String webhookUrl, TrackedPlayer player, int timePlayed) {
         var logger = Bukkit.getLogger();
         try {
-            HttpURLConnection connection = getUrlConnection(webhookUrl);
+            String payload = String.format("{ \"content\": \"%s\", \"username\": \"%s\" }",formatTime(timePlayed, player.getPlayerName()), player.getPlayerName());
+            HttpURLConnection connection = getUrlConnection(webhookUrl,  payload);
 
             int responseCode = connection.getResponseCode();
             if (responseCode == 204) {
@@ -74,14 +74,14 @@ public class JoinCache {
         }
     }
 
-    private static HttpURLConnection getUrlConnection(String webhookUrl) throws IOException {
+    private static HttpURLConnection getUrlConnection(String webhookUrl, String payload) throws IOException {
         URL url = new URL(webhookUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
 
-        String payload = "{ \"content\": \"Hello, this is a test message from Java!\", \"username\": \"WebhookBot\" }";
+
 
         try (OutputStream os = connection.getOutputStream()) {
             byte[] input = payload.getBytes(StandardCharsets.UTF_8);
