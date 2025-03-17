@@ -21,10 +21,7 @@ public class JoinListener implements Listener {
             joinedPlayer.sendMessage(MessageUtils.format("&6Welcome to GunGens! &eThis is a fast-paced, action-packed server where you can build, battle, and dominate with custom guns and generators. &7Team up with friends, explore unique maps, and rise to the top of the leaderboard. &aGood luck, and have fun!"));
 
         }
-
-        if (player.isFirstJoin()) {
-
-        }
+        joinedPlayer.sendMessage(MessageUtils.format("&6Welcome back to GunGens! "));
 
     }
     @EventHandler
