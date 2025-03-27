@@ -1,6 +1,7 @@
 package com.gungens.serverAnalytics.memory;
 
 import com.gungens.serverAnalytics.ServerAnalytics;
+import com.gungens.serverAnalytics.database.StatisticsService;
 import com.gungens.serverAnalytics.models.TrackedPlayer;
 import org.bukkit.Bukkit;
 
@@ -55,6 +56,7 @@ public class JoinCache {
         Bukkit.getLogger().log(Level.WARNING, formatTime(((int) (timestamp - player.getTimestamp()) /1000), player.getPlayerName()));
         sendWebhook("https://discord.com/api/webhooks/1350801919345426452/emOxbCmtvddspC1gXwnsRYG4MAaXLfImWPSR5GxzRY_sUeWFJrh0lNCVgyjwQpSgxfk7", player, ((int) (timestamp - player.getTimestamp()) /1000));
         sendJoinLeaveMessageWebhook("https://discordapp.com/api/webhooks/1351039518161109122/YMvH9DwpNtDfw7v19HoxHEEs-E00XVGPTEyp26-QssT6ZMalaQGKIIjgVzCWoajZrDLH", player, PLAYER_STATE.QUIT);
+        StatisticsService.getInstance().sendAverageTimeStat("https://discordapp.com/api/webhooks/1351208693437567047/hBhqU0ErmckK0XrEdy_ciD1ke6Lb6KrH7tzd_T9Co0ohXVCOmhDdxbWJ6WabSEnu7hA4");
         removePlayer(player);
     }
     public static void sendWebhook(String webhookUrl, TrackedPlayer player, int timePlayed) {

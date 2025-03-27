@@ -16,6 +16,8 @@ public class TrackedPlayer {
     private int totalJoins;
     @DatabaseField
     private long timePlayed;
+    @DatabaseField
+    private long totalTimePlayed;
     public TrackedPlayer() {}
 
     public TrackedPlayer(Player player) {
